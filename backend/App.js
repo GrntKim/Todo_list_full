@@ -37,7 +37,13 @@ app.patch('/api/todos/:id', (req, res) => {
 
 // delete todo
 app.delete('/api/todos/:id', (req, res) => {
-    todos = todos.filter(t => t.id == req.params.id);
+    todos = todos.filter(t => t.id != req.params.id);
+    res.status(204).end();
+});
+
+// delete all todos
+app.delete('/api/todos/', (req, res) => {
+    todos = [];
     res.status(204).end();
 });
 
