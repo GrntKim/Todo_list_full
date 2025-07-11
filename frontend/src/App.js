@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
   const [input, setInput] = useState('');
   const [todos, setTodos] = useState([]);
 
+  useEffect(() => {
+    fetch('/api/todos')
+      .then(res => res.json())
+      .then(data => setTodos(data));
+  }, []);
+
   const handleInputChange = (e) => {
     setInput(e.target.value);
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (input.trim() === '') return;
-    setTodos([...todos, { id: Date.now(), content: input }]);
-    setInput('');
+    try {
+      const res = await fetch('/api/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({content: input})
+      });
+      if (!res.ok) throw new Error('서버 오류');
+      const todosRes = await fetch('/api/todos');
+      const todosData = await todosRes.json();
+      setTodos(todosData);
+      setInput('');
+    } catch (err) {
+      alert('Failed to add todo');
+    }
   };
 
   return (

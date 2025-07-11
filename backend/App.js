@@ -1,16 +1,16 @@
 import express from 'express';
 const app = express();
-app.use(express.json);
+app.use(express.json());
 
 let todos = [];
 
 // view todos
-app.get('api/todos', (req, res) => {
+app.get('/api/todos', (req, res) => {
     res.json(todos);
 });
 
 // add todos
-app.post('api/todos', (req, res) => {
+app.post('/api/todos', (req, res) => {
     const { content } = req.body;
     const newTodo = {
         id: Date.now(),
