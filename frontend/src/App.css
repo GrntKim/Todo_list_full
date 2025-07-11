@@ -24,7 +24,7 @@ h1 {
   justify-content: center;
 }
 
-.task-list {
+.task-list-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 15px;
