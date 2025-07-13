@@ -25,10 +25,15 @@ app.post('/api/todos', (req, res) => {
 // modify(status, content) todo
 app.patch('/api/todos/:id', (req, res) => {
     const { id } = req.params;
-    const { completed } = req.body;
+    const { completed, content } = req.body;
     const todo = todos.find(t => t.id == id);
     if (todo) {
-        todo.completed = completed;
+        if (completed !== undefined) {
+            todo.completed = completed;
+        }
+        if (content !== undefined) {
+            todo.content = content;
+        }
         res.json(todo);
     } else {
         res.status(404).json({ error: 'Not found'});
