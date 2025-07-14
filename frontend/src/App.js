@@ -3,13 +3,18 @@ import './App.css';
 
 function App() {
   const [input, setInput] = useState('');
-  const inputRef = useRef();
-
-  const [todos, setTodos] = useState([]);
-
   const [editingId, setEditingId] = useState(null);
   const [editingInput, setEditingInput] = useState('');
+  const [todos, setTodos] = useState([]);
+
+  const inputRef = useRef();
   const editingInputRef = useRef();
+
+  useEffect(() => {
+    fetch('/api/todos')
+      .then(res => res.json())
+      .then(data => setTodos(data));
+  }, []);
 
   useEffect(() => {
     if (editingId !== null) {
@@ -17,11 +22,15 @@ function App() {
     }
   }, [editingId]);
 
-
   const handleKeyDown = (e) => {
+    if (e.isComposing || e.keyCode === 229 || e.nativeEvent.isComposing) {
+      return;
+    }
     if (e.key === 'Enter') {
+      e.preventDefault();
       handleAdd();
     } else if (e.key === 'Escape') {
+      e.preventDefault();
       handleInputClear();
     }
   };
@@ -33,12 +42,6 @@ function App() {
       handleCancelEdit();
     }
   };
-
-  useEffect(() => {
-    fetch('/api/todos')
-      .then(res => res.json())
-      .then(data => setTodos(data));
-  }, []);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -82,9 +85,10 @@ function App() {
   };
 
   const handleDeleteAll = async () => {
+    const count = todos.length;
+    if (count === 0) return;
     try {
-      const count = todos.length;
-      const message = count == 1
+      const message = (count == 1)
         ? 'Delete 1 todo item?'
         : `Delete ${count} todo items?`;
       if (window.confirm(message)) {
@@ -101,15 +105,34 @@ function App() {
     }
   };
 
+  const handleCompleted = async (id, completed) => {
+    try {
+      const res = await fetch(`/api/todos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({ completed })
+      });
+      if (!res.ok) throw new Error('server error');
+      const todosRes = await fetch('/api/todos');
+      const todosData = await todosRes.json();
+      setTodos(todosData);
+      setEditingId(null);
+      setEditingInput('');
+      inputRef.current.focus();
+    } catch (err) {
+      alert('Failed to update todo: ' + err.message);
+    }
+ };
+
   const handleInputClear = () => {
     setInput('');
     inputRef.current.focus();
-  }
+  };
 
   const handleEditInputClear = () => {
     setEditingInput('');
     editingInputRef.current.focus();
-  }
+  };
 
   const handleStartEdit = (id, content) => {
     setEditingId(id);
@@ -162,7 +185,7 @@ function App() {
           {todos.map(todo => (
             <li key={todo.id}>
               {editingId === todo.id ? (
-                <div className='edit-container'>
+                <div>
                   <input
                     ref={editingInputRef}
                     type='text'
@@ -176,9 +199,13 @@ function App() {
                 </div>
               ) : (
                 <>
-                  <span>{todo.content}</span>
+                  <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+                    {todo.content}
+                  </span>
                   <div>
-                    <button>finished</button>
+                    <button onClick={() => handleCompleted(todo.id, !todo.completed)}>
+                      {todo.completed ? "finished" : "unfinished"}
+                    </button>
                     <button onClick={() => handleDelete(todo.id)}>delete</button>
                     <button onClick={() => {handleStartEdit(todo.id, todo.content)}}>update</button>
                   </div>

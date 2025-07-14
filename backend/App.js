@@ -26,7 +26,7 @@ app.post('/api/todos', (req, res) => {
 app.patch('/api/todos/:id', (req, res) => {
     const { id } = req.params;
     const { completed, content } = req.body;
-    const todo = todos.find(t => t.id == id);
+    const todo = todos.find(t => t.id === Number(id));
     if (todo) {
         if (completed !== undefined) {
             todo.completed = completed;
@@ -42,7 +42,7 @@ app.patch('/api/todos/:id', (req, res) => {
 
 // delete todo
 app.delete('/api/todos/:id', (req, res) => {
-    todos = todos.filter(t => t.id != req.params.id);
+    todos = todos.filter(t => t.id !== Number(req.params.id));
     res.status(204).end();
 });
 
